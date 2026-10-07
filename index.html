@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Decisions">
+<meta name="theme-color" content="#E9F1FF">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Decision Quest</title>
+<style>
+:root{--bg:#E9F1FF;--card:#fff;--ink:#14213D;--mute:#5B6784;--blue:#3A5AFE;--green:#1FB57A;--red:#FF5C58;--gold:#FFC83D;--line:#D3DDF5}
+:root[data-theme=dark]{--bg:#0F1530;--card:#1B2447;--ink:#F1F4FF;--mute:#9AA6CC;--line:#2E3A69}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]):not([data-theme=dark]),:root[data-theme=auto]{--bg:#0F1530;--card:#1B2447;--ink:#F1F4FF;--mute:#9AA6CC;--line:#2E3A69}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif}
+body{padding:env(safe-area-inset-top) 0 calc(76px + env(safe-area-inset-bottom))}
+.wrap{max-width:560px;margin:0 auto;padding:14px 16px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.lvl{background:var(--gold);color:#14213D;font-weight:800;border-radius:14px;padding:8px 12px;min-width:64px;text-align:center}
+.xpwrap{flex:1}
+.xpbar{height:12px;border-radius:8px;background:var(--line);overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;background:var(--blue);border-radius:8px;transition:width .5s}
+.xptxt{font-size:12px;color:var(--mute);margin-top:3px}
+.streak{font-weight:800;font-size:18px}
+h1{font-size:24px;margin:6px 0 4px}
+.sub{color:var(--mute);margin:0 0 14px}
+.card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px;border:2px solid var(--line)}
+label{display:block;font-weight:700;margin:12px 0 5px}
+label:first-child{margin-top:0}
+input[type=text],input[type=number],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:11px}
+textarea{min-height:68px;resize:vertical}
+input:focus,textarea:focus,select:focus{outline:3px solid var(--blue);outline-offset:1px}
+.seg{display:flex;gap:8px}
+.seg button{flex:1}
+button{font:inherit;font-weight:700;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:11px 10px;cursor:pointer}
+button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+button.main{width:100%;background:var(--blue);border-color:var(--blue);color:#fff;font-size:17px;padding:14px;margin-top:16px}
+button:active{transform:scale(.97)}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+input[type=range]{width:100%;accent-color:var(--blue)}
+.conf{font-weight:800;color:var(--blue)}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:2px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));gap:6px}
+nav button{flex:1;border:0;background:none;font-size:13px;padding:8px 4px;border-radius:12px}
+nav button.on{background:var(--blue);color:#fff}
+nav b{display:block;font-size:20px}
+.badge{display:inline-block;background:var(--red);color:#fff;border-radius:10px;font-size:11px;padding:1px 6px;margin-left:3px}
+.item h3{margin:0 0 4px;font-size:17px}
+.meta{font-size:13px;color:var(--mute)}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:8px;padding:2px 8px;background:var(--bg);margin-right:4px}
+.right{background:var(--green);color:#fff}.part{background:var(--gold);color:#14213D}.wrong{background:var(--red);color:#fff}
+.three{display:flex;gap:6px;margin-top:10px}
+.three button{flex:1;font-size:14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px;text-align:center}
+.stat b{display:block;font-size:28px}
+.empty{text-align:center;color:var(--mute);padding:28px 10px}
+.empty span{font-size:42px;display:block}
+.toast{position:fixed;left:50%;top:calc(18px + env(safe-area-inset-top));transform:translate(-50%,-120px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:16px;font-weight:800;transition:transform .35s;z-index:9}
+.toast.show{transform:translate(-50%,0)}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.bd{border:2px dashed var(--line);border-radius:14px;padding:8px 10px;font-size:13px;opacity:.45}
+.bd.got{opacity:1;border-style:solid;border-color:var(--gold)}
+#gear{border:0;background:none;font-size:22px;padding:4px 2px}
+.small{font-size:13px}
+ul.small{margin:6px 0 0;padding-left:18px}
+.new{background:var(--green);color:#fff;border-radius:8px;font-size:11px;padding:1px 7px;margin-left:4px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chips button{padding:6px 12px;font-size:13px;border-radius:20px}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
+.mascot{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+.owl{font-size:44px;animation:bob 2.4s ease-in-out infinite}
+.bubble{background:var(--card);border:2px solid var(--line);border-radius:16px 16px 16px 4px;padding:10px 14px;font-weight:700;flex:1}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-4deg)}}
+.overlay{position:fixed;inset:0;background:rgba(10,15,40,.82);display:flex;align-items:center;justify-content:center;z-index:30;padding:24px}
+.pop{background:var(--card);border-radius:28px;padding:28px 24px;text-align:center;max-width:320px;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+.pop .big{font-size:72px}
+.pop h2{margin:6px 0}
+@keyframes pop{from{transform:scale(.4);opacity:0}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="lvl" id="lvl">Lv 1</div>
+    <div class="xpwrap"><div class="xpbar"><i id="xpbar"></i></div><div class="xptxt" id="xptxt"></div></div>
+    <div class="streak" id="streak">🔥0</div>
+    <button id="gear" aria-label="Settings">⚙️</button>
+  </header>
+  <main id="view"></main>
+</div>
+<canvas id="fx"></canvas>
+<div class="toast" id="toast"></div>
+<nav>
+  <button data-t="log"><b>✏️</b>Log</button>
+  <button data-t="review"><b>🔍</b>Review<span id="due"></span></button>
+  <button data-t="history"><b>📚</b>History</button>
+  <button data-t="stats"><b>📊</b>Stats</button>
+</nav>
+<script>
+const KEY="decisionquest.v1";
+let S={items:[],xp:0,days:[]};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const day=d=>(d||new Date()).toLocaleDateString("en-CA");
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+S.seen=S.seen||[];
+const CATS=["💼 Business","💰 Money","🏠 Personal","📦 Other"];
+const catOf=i=>i.cat||CATS[3];
+let tab="log",form={door:"two",conf:70,n:1,u:"days",cat:CATS[3]};
+
+function streak(){
+  const set=new Set(S.days);let n=0;const d=new Date();
+  if(!set.has(day(d)))d.setDate(d.getDate()-1);
+  while(set.has(day(d))){n++;d.setDate(d.getDate()-1)}
+  return n;
+}
+function touch(){const t=day();if(!S.days.includes(t))S.days.push(t)}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000)}
+const TITLES=["Rookie","Thinker","Planner","Strategist","Analyst","Tactician","Sage","Oracle"];
+const lvlOf=x=>Math.floor(x/50)+1;
+function badges(){const n=reviewed().length;return [["🌱","First log",S.items.length>=1],["🔟","10 logged",S.items.length>=10],["🔍","First review",n>=1],["🎯","5 reviews",n>=5],["🔥","3-day streak",streak()>=3],["🏆","7-day streak",streak()>=7],["⭐","Lv 5",lvlOf(S.xp)>=5]]}
+function newBadges(){const out=[];badges().forEach(b=>{if(b[2]&&!S.seen.includes(b[1])){S.seen.push(b[1]);out.push(b[0]+" "+b[1])}});return out}
+function confetti(n){
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  const c=$("#fx"),x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;
+  const cols=["#3A5AFE","#FFC83D","#1FB57A","#FF5C58","#fff"];
+  const ps=Array.from({length:n},()=>({x:c.width/2,y:c.height*.6,vx:(Math.random()-.5)*14,vy:-Math.random()*16-4,r:Math.random()*6+3,c:cols[Math.random()*5|0],a:Math.random()*6}));
+  let f=0;(function go(){x.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.vy+=.5;p.x+=p.vx;p.y+=p.vy;p.a+=.2;x.fillStyle=p.c;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore()});if(++f<80)requestAnimationFrame(go);else x.clearRect(0,0,c.width,c.height)})();
+}
+function levelUp(l){
+  const o=document.createElement("div");o.className="overlay";
+  o.innerHTML=`<div class="pop"><div class="big">🏅</div><h2>Level ${l}</h2><p>You're now a <b>${TITLES[Math.min(l-1,TITLES.length-1)]}</b>.<br>Sharper thinking, one decision at a time.</p><button class="main" id="ok">Keep going</button></div>`;
+  document.body.appendChild(o);confetti(160);$("#ok").onclick=()=>o.remove();
+}
+function addXp(n,msg,big){
+  const before=lvlOf(S.xp),bonus=S.days.includes(day())?0:5;
+  S.xp+=n+bonus;touch();const nb=newBadges();save();
+  const up=lvlOf(S.xp)>before;
+  confetti(big?110:45);
+  if(up)levelUp(lvlOf(S.xp));else toast(msg+" +"+(n+bonus)+" XP"+(bonus?" · daily bonus!":""));
+  if(nb.length)setTimeout(()=>toast("New badge "+nb.join(", ")),up?300:2300);
+}
+const reviewed=()=>S.items.filter(i=>i.result!=null);
+const dueMs=i=>typeof i.due==="number"?i.due:new Date(i.due+"T00:00:00").getTime();
+const fmt=ms=>new Date(ms).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+function addTime(n,u){const d=new Date();if(u==="hours")d.setHours(d.getHours()+n);else if(u==="days")d.setDate(d.getDate()+n);else if(u==="weeks")d.setDate(d.getDate()+n*7);else d.setMonth(d.getMonth()+n);return d.getTime()}
+const dueItems=()=>S.items.filter(i=>i.result==null&&dueMs(i)<=Date.now());
+function head(){
+  $("#lvl").textContent="Lv "+lvlOf(S.xp);
+  $("#xpbar").style.width=((S.xp%50)/50*100)+"%";
+  $("#xptxt").textContent=(S.xp%50)+" / 50 XP";
+  $("#streak").textContent="🔥"+streak();
+  const n=dueItems().length;$("#due").innerHTML=n?'<span class="badge">'+n+'</span>':"";
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===tab));
+}
+function render(){applyTheme();head();({log:vLog,review:vReview,history:vHistory,stats:vStats,more:vMore})[tab]()}
+
+function owlSays(){
+  const d=dueItems().length,k=streak();
+  if(d)return d+" decision"+(d>1?"s are":" is")+" ready to review. Tap Review!";
+  if(!S.items.length)return "Hi! Log your first decision and I'll start cheering.";
+  if(k>=3)return k+" days in a row. You're on fire!";
+  const t=["Reversible? Decide fast and move on.","Ask: what would make me wrong?","Small decisions, small effort. Save energy for big ones.","Being wrong is data, not failure."];
+  return t[Math.random()*t.length|0];
+}
+function vLog(){
+  $("#view").innerHTML=`
+  <div class="mascot"><div class="owl">🦉</div><div class="bubble">${esc(owlSays())}</div></div>
+  <h1>New decision</h1>
+  <div class="card">
+    <label for="q">What are you deciding?</label>
+    <input type="text" id="q" placeholder="e.g. Switch to a new supplier?" maxlength="120">
+    <label for="c">What did you choose?</label>
+    <input type="text" id="c" placeholder="e.g. Yes, trial for one month" maxlength="120">
+    <label for="w">Why?</label>
+    <textarea id="w" placeholder="Main reason in a sentence or two"></textarea>
+    <label for="x">What would make me wrong?</label>
+    <textarea id="x" placeholder="The one thing that could go differently"></textarea>
+    <label>Category</label><div class="chips" id="cats" style="margin-top:0"></div>
+    <label>Can you undo it?</label>
+    <div class="seg" id="door">
+      <button data-v="two">🚪 Two-way door<br><span class="small">Easy to undo</span></button>
+      <button data-v="one">🔒 One-way door<br><span class="small">Hard to undo</span></button>
+    </div>
+    <div id="pmw" style="display:none"><label for="pm">Pre-mortem: imagine this failed. Why? (+5 XP)</label><textarea id="pm" placeholder="The most likely reason it goes wrong"></textarea></div>
+    <label>How sure are you? <span class="conf" id="cv"></span></label>
+    <input type="range" id="conf" min="50" max="100" step="5">
+    <label for="wn">Check back in</label>
+    <div class="seg"><input type="number" id="wn" min="1" max="999" inputmode="numeric" style="max-width:96px"><select id="wu"><option value="hours">hours</option><option value="days">days</option><option value="weeks">weeks</option><option value="months">months</option></select></div>
+    <div class="chips" id="chips"><button data-n="1" data-u="hours">1 hr</button><button data-n="2" data-u="hours">2 hrs</button><button data-n="1" data-u="days">1 day</button><button data-n="1" data-u="weeks">1 week</button><button data-n="1" data-u="months">1 month</button></div>
+    <label style="display:flex;gap:10px;align-items:center;font-weight:600;margin-top:14px"><input type="checkbox" id="cal" style="width:22px;height:22px"> 📅 Also add check-back to my calendar</label>
+    <button class="main" id="save">Log it · +10 XP</button>
+  </div>`;
+  const sync=()=>{$("#cv").textContent=form.conf+"%";document.querySelectorAll("#door button").forEach(b=>b.classList.toggle("on",b.dataset.v===form.door));$("#pmw").style.display=form.door==="one"?"block":"none";document.querySelectorAll("#cats button").forEach(b=>b.classList.toggle("on",b.dataset.c===form.cat))};
+  $("#cats").innerHTML=CATS.map(c=>`<button data-c="${c}">${c}</button>`).join("");
+  $("#cats").onclick=e=>{const b=e.target.closest("button");if(b){form.cat=b.dataset.c;sync()}};
+  $("#conf").value=form.conf;$("#wn").value=form.n;$("#wu").value=form.u;sync();
+  $("#conf").oninput=e=>{form.conf=+e.target.value;sync()};
+  $("#wn").oninput=e=>form.n=Math.max(1,parseInt(e.target.value)||1);
+  $("#wu").onchange=e=>form.u=e.target.value;
+  $("#chips").onclick=e=>{const b=e.target.closest("button");if(b){form.n=+b.dataset.n;form.u=b.dataset.u;$("#wn").value=form.n;$("#wu").value=form.u}};
+  $("#door").onclick=e=>{const b=e.target.closest("button");if(b){form.door=b.dataset.v;sync()}};
+  $("#save").onclick=()=>{
+    const q=$("#q").value.trim();
+    if(!q){toast("Add what you're deciding first");$("#q").focus();return}
+        S.items.unshift({id:Date.now(),q,choice:$("#c").value.trim(),why:$("#w").value.trim(),wrong:$("#x").value.trim(),door:form.door,cat:form.cat,pm:form.door==="one"?$("#pm").value.trim():"",conf:form.conf,made:day(),due:addTime(form.n,form.u),result:null});
+    if($("#cal").checked)addCal(S.items[0]);addXp(10+(it0(form)?5:0)+(S.items[0].pm?5:0),"Logged!",false);form={door:"two",conf:70,n:1,u:"days",cat:CATS[3]};render();
+  };
+}
+
+function it0(f){return f.door==='one'}
+function vReview(){
+  const due=dueItems(),wait=S.items.filter(i=>i.result==null&&dueMs(i)>Date.now()).sort((a,b)=>dueMs(a)-dueMs(b));
+  let h="<h1>Review</h1><p class='sub'>Did it turn out how you expected?</p>";
+  if(!due.length)h+=`<div class="card empty"><span>🌤️</span>Nothing to review today.<br>${wait.length?wait.length+" decision"+(wait.length>1?"s":"")+" waiting for their date.":"Log a decision to get started."}</div>`;
+  due.forEach(i=>{h+=`<div class="card item" data-id="${i.id}">
+    <h3>${esc(i.q)}</h3>
+    <div class="meta">Chose: ${esc(i.choice||"—")} · ${i.conf}% sure · ${i.door==="one"?"🔒":"🚪"}</div>
+    ${i.why?`<p class="small">Why: ${esc(i.why)}</p>`:""}
+    ${i.wrong?`<p class="small">Could be wrong if: ${esc(i.wrong)}</p>`:""}
+    ${i.pm?`<p class="small">Pre-mortem: ${esc(i.pm)}</p>`:""}
+    <textarea placeholder="What did you learn? (optional)"></textarea>
+    <div class="three"><button data-r="1">✅ Right</button><button data-r="0.5">🤏 Partly</button><button data-r="0">❌ Wrong</button></div></div>`});
+  if(wait.length){h+="<h1 style='font-size:18px;margin-top:20px'>Coming up</h1>";
+    wait.slice(0,5).forEach(i=>h+=`<div class="card item"><h3>${esc(i.q)}</h3><div class="meta">Check back ${fmt(dueMs(i))}</div></div>`)}
+  $("#view").innerHTML=h;
+  $("#view").onclick=e=>{
+    const b=e.target.closest("[data-r]");if(!b)return;
+    const c=b.closest(".item"),it=S.items.find(x=>x.id==c.dataset.id);
+    it.result=+b.dataset.r;it.note=c.querySelector("textarea").value.trim();it.rev=day();
+    addXp(15+(it.note?5:0),it.result===1?"Nice read!":"Lesson banked!",it.result===1);render();
+  };
+}
+
+function vStats(){
+  const r=reviewed(),n=r.length,hit=n?r.reduce((a,i)=>a+i.result,0)/n:0,avg=n?r.reduce((a,i)=>a+i.conf,0)/n/100:0;
+  let tip="Review a few decisions to see how well your confidence matches reality.";
+  if(n>=3){const g=avg-hit;tip=g>.15?"You tend to be overconfident. Try dropping your sure-ness a notch.":g<-.15?"You're more right than you think. Trust yourself a bit more.":"Your confidence matches your results well. Sharp calibration!"}
+  const bds=badges();
+  $("#view").innerHTML=`<h1>Your stats</h1><p class="sub">Patterns beat gut feelings.</p>
+  <div class="grid"><div class="stat"><b>${S.items.length}</b>logged</div><div class="stat"><b>${n}</b>reviewed</div>
+  <div class="stat"><b>${n?Math.round(hit*100)+"%":"–"}</b>right</div><div class="stat"><b>${n?Math.round(avg*100)+"%":"–"}</b>avg. sure</div></div>
+  <div style="margin-top:12px">${weekCard()}${catCard()}</div>
+  <div class="card"><b>Calibration</b><p class="small" style="margin:6px 0 0">${tip}</p></div>
+  <div class="card"><b>Badges</b><div class="badges" style="margin-top:8px">${bds.map(b=>`<div class="bd ${b[2]?"got":""}">${b[0]} ${b[1]}</div>`).join("")}</div></div>
+  <div class="card"><b>Backup</b><p class="small">Your data lives only on this phone. Copy a backup now and then.</p>
+  <div class="seg"><button id="exp">Copy backup</button><button id="imp">Restore</button></div></div>`;
+  $("#view").onclick=null;
+  $("#exp").onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(S));toast("Backup copied")}catch(e){prompt("Copy this backup:",JSON.stringify(S))}};
+  $("#imp").onclick=()=>{const t=prompt("Paste your backup here");if(!t)return;try{const o=JSON.parse(t);if(!Array.isArray(o.items))throw 0;S=Object.assign({items:[],xp:0,days:[],seen:[]},o);save();toast("Restored");render()}catch(e){toast("That backup didn't work")}};
+}
+
+
+const VERSION="1.4.0";
+const CHANGELOG=[
+{v:"1.4.0",d:"Oct 2026",n:["Categories (Business, Money, Personal, Other) with filters in History","Search your decisions","Pre-mortem prompt for one-way decisions, +5 XP","Weekly summary and right-rate by category in Stats","Add check-back reminders to your calendar"]},
+{v:"1.3.0",d:"Oct 2026",n:["New History tab: edit or delete any logged decision","Dark, light, or auto theme in Settings","Version history and patch notes (this page)"]},
+{v:"1.2.0",d:"Oct 2026",n:["Check back in hours, days, weeks, or months","Quick buttons: 1 hr, 2 hrs, 1 day, 1 week, 1 month","Review badge updates itself when a decision comes due"]},
+{v:"1.1.0",d:"Oct 2026",n:["Confetti, owl mascot, and level-up screen","Badge unlock alerts","Daily bonus XP and a bonus for one-way decisions"]},
+{v:"1.0.0",d:"Oct 2026",n:["First release: log, review, and stats","XP, levels, streaks, and badges","Works offline and installs on the home screen"]}];
+function applyTheme(){
+  const t=S.theme||"auto";document.documentElement.dataset.theme=t;
+  const dark=t==="dark"||(t==="auto"&&matchMedia("(prefers-color-scheme:dark)").matches);
+  document.querySelector("meta[name=theme-color]").content=dark?"#0F1530":"#E9F1FF";
+}
+let hq="",hc="All";
+function histList(){
+  const q=hq.toLowerCase();
+  const L=S.items.filter(i=>(hc==="All"||catOf(i)===hc)&&(!q||[i.q,i.choice,i.why,i.wrong,i.note,i.pm].join(" ").toLowerCase().includes(q)));
+  if(!L.length)return '<div class="card empty"><span>📚</span>'+(S.items.length?"Nothing matches.":"No decisions logged yet.")+'</div>';
+  return L.map(i=>{
+    const open=i.result==null;
+    const st=open?(dueMs(i)<=Date.now()?"⏰ Ready to review":"⏳ Check back "+fmt(dueMs(i))):(i.result===1?"✅ Right":i.result===0.5?"🤏 Partly":"❌ Wrong");
+    return `<div class="card item" data-id="${i.id}"><h3>${esc(i.q)}</h3><div class="meta"><span class="tag">${catOf(i)}</span>Chose: ${esc(i.choice||"—")} · ${i.conf}% sure · ${i.door==="one"?"🔒":"🚪"}</div><div class="meta">Logged ${i.made} · ${st}</div>${i.pm?`<p class="small">Pre-mortem: ${esc(i.pm)}</p>`:""}${i.note?`<p class="small">Learned: ${esc(i.note)}</p>`:""}<div class="three"><button data-a="edit">✏️ Edit</button>${open?'<button data-a="cal">📅 Calendar</button>':""}<button data-a="del">🗑️ Delete</button></div></div>`}).join("");
+}
+function vHistory(){
+  $("#view").innerHTML=`<h1>History</h1><p class="sub">Search, filter, fix, or remove.</p>
+  <input type="text" id="hs" placeholder="🔎 Search decisions" style="margin-bottom:10px">
+  <div class="chips" style="margin:0 0 12px" id="hc">${["All",...CATS].map(c=>`<button data-c="${c}" class="${c===hc?"on":""}">${c}</button>`).join("")}</div><div id="hl"></div>`;
+  $("#hs").value=hq;$("#hl").innerHTML=histList();
+  $("#hs").oninput=e=>{hq=e.target.value;$("#hl").innerHTML=histList()};
+  $("#hc").onclick=e=>{const b=e.target.closest("button");if(b){hc=b.dataset.c;document.querySelectorAll("#hc button").forEach(x=>x.classList.toggle("on",x.dataset.c===hc));$("#hl").innerHTML=histList()}};
+  $("#view").onclick=e=>{
+    const b=e.target.closest("[data-a]");if(!b)return;
+    const id=b.closest(".item").dataset.id,it=S.items.find(x=>x.id==id);
+    if(b.dataset.a==="del"){if(confirm("Delete this decision? This can't be undone.")){S.items=S.items.filter(x=>x.id!=id);save();toast("Deleted");render()}}
+    else if(b.dataset.a==="cal")addCal(it);
+    else editor(it);
+  };
+}
+const ics2=t=>String(t).replace(/[\\;,]/g,m=>"\\"+m).replace(/\n/g," ");
+function addCal(it){
+  const z=ms=>new Date(ms).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,""),t=dueMs(it);
+  const txt=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//DecisionQuest//EN","BEGIN:VEVENT","UID:"+it.id+"@decisionquest","DTSTAMP:"+z(Date.now()),"DTSTART:"+z(t),"DTEND:"+z(t+15*60000),"SUMMARY:"+ics2("Review decision: "+it.q),"DESCRIPTION:"+ics2("Chose: "+(it.choice||"-")+" ("+it.conf+"% sure)"),"BEGIN:VALARM","TRIGGER:PT0M","ACTION:DISPLAY","DESCRIPTION:Review decision","END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/calendar"}));a.download="decision-review.ics";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+}
+function rangeStats(a,b){
+  const made=S.items.filter(i=>i.made>=a&&i.made<=b).length,rv=S.items.filter(i=>i.result!=null&&i.rev>=a&&i.rev<=b);
+  return {made,n:rv.length,hit:rv.length?rv.reduce((x,i)=>x+i.result,0)/rv.length:null};
+}
+function weekCard(){
+  const d=n=>{const x=new Date();x.setDate(x.getDate()-n);return day(x)};
+  const t=rangeStats(d(6),d(0)),p=rangeStats(d(13),d(7));
+  const pct=h=>h==null?"–":Math.round(h*100)+"%",ar=(a,b)=>a==null||b==null?"":a>b?" ▲":a<b?" ▼":" =";
+  return `<div class="card"><b>📅 This week</b> <span class="meta">vs last week</span>
+  <div class="grid" style="margin-top:10px"><div class="stat"><b>${t.made}</b>logged<div class="meta">was ${p.made}</div></div><div class="stat"><b>${t.n}</b>reviewed<div class="meta">was ${p.n}</div></div></div>
+  <p class="small" style="margin:10px 0 0">Right: <b>${pct(t.hit)}</b>${ar(t.hit,p.hit)} (last week ${pct(p.hit)})</p></div>`;
+}
+function catCard(){
+  const rows=CATS.map(c=>{const r=reviewed().filter(i=>catOf(i)===c);return r.length?`<div style="display:flex;justify-content:space-between;margin-top:8px"><span>${c}</span><b>${Math.round(r.reduce((a,i)=>a+i.result,0)/r.length*100)}% right · ${r.length}</b></div>`:""}).join("");
+  return rows?`<div class="card"><b>By category</b>${rows}</div>`:"";
+}
+function editor(it){
+  const o=document.createElement("div");o.className="overlay";
+  const loc=ms=>new Date(ms-new Date(ms).getTimezoneOffset()*60000).toISOString().slice(0,16);
+  const rv=it.result!=null;let door=it.door;
+  o.innerHTML=`<div class="pop" style="text-align:left;width:100%;max-width:420px;max-height:90vh;overflow:auto"><h2>Edit decision</h2>
+  <label for="eq">What you're deciding</label><input type="text" id="eq" maxlength="120">
+  <label for="ec">What you chose</label><input type="text" id="ec" maxlength="120">
+  <label for="ew">Why</label><textarea id="ew"></textarea>
+  <label for="ex">What would make me wrong</label><textarea id="ex"></textarea>
+  <label>Can you undo it?</label><div class="seg" id="ed"><button data-v="two">🚪 Two-way</button><button data-v="one">🔒 One-way</button></div>
+  <label for="ecat">Category</label><select id="ecat">${CATS.map(c=>`<option>${c}</option>`).join("")}</select>
+  <label for="epm">Pre-mortem (why it might fail)</label><textarea id="epm"></textarea>
+  <label>How sure? <span class="conf" id="ecv"></span></label><input type="range" id="ecf" min="50" max="100" step="5">
+  <label for="edu">Check back on</label><input type="datetime-local" id="edu" style="width:100%;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:10px">
+  ${rv?'<label for="er">Result</label><select id="er"><option value="1">Right</option><option value="0.5">Partly</option><option value="0">Wrong</option></select><label for="en">What you learned</label><textarea id="en"></textarea>':""}
+  <div class="seg" style="margin-top:16px"><button id="ecancel">Cancel</button><button class="on" id="esave">Save</button></div></div>`;
+  document.body.appendChild(o);
+  $("#eq").value=it.q;$("#ec").value=it.choice||"";$("#ew").value=it.why||"";$("#ex").value=it.wrong||"";
+  $("#ecf").value=it.conf;$("#ecat").value=catOf(it);$("#epm").value=it.pm||"";$("#edu").value=loc(dueMs(it));
+  if(rv){$("#er").value=String(it.result);$("#en").value=it.note||""}
+  const sync=()=>{$("#ecv").textContent=$("#ecf").value+"%";document.querySelectorAll("#ed button").forEach(b=>b.classList.toggle("on",b.dataset.v===door))};sync();
+  $("#ecf").oninput=sync;
+  $("#ed").onclick=e=>{const b=e.target.closest("button");if(b){door=b.dataset.v;sync()}};
+  $("#ecancel").onclick=()=>o.remove();
+  $("#esave").onclick=()=>{
+    const q=$("#eq").value.trim();if(!q){toast("Add what you're deciding");return}
+    Object.assign(it,{q,choice:$("#ec").value.trim(),why:$("#ew").value.trim(),wrong:$("#ex").value.trim(),door,cat:$("#ecat").value,pm:$("#epm").value.trim(),conf:+$("#ecf").value});
+    const du=$("#edu").value;if(du)it.due=new Date(du).getTime();
+    if(rv){it.result=+$("#er").value;it.note=$("#en").value.trim()}
+    save();o.remove();toast("Saved");render();
+  };
+}
+function vMore(){
+  const th=S.theme||"auto";
+  $("#view").innerHTML=`<h1>Settings</h1>
+  <div class="card"><b>Appearance</b><div class="seg" id="th" style="margin-top:10px">${[["auto","🌓 Auto"],["light","☀️ Light"],["dark","🌙 Dark"]].map(t=>`<button data-v="${t[0]}" class="${th===t[0]?"on":""}">${t[1]}</button>`).join("")}</div></div>
+  <h1 style="font-size:20px;margin-top:20px">Patch notes</h1>
+  ${CHANGELOG.map(c=>`<div class="card"><b>v${c.v}</b>${c.v===VERSION?'<span class="new">CURRENT</span>':""} <span class="meta">· ${c.d}</span><ul class="small">${c.n.map(x=>"<li>"+x+"</li>").join("")}</ul></div>`).join("")}`;
+  $("#view").onclick=e=>{const b=e.target.closest("#th button");if(b){S.theme=b.dataset.v;save();render()}};
+}
+document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
+$("#gear").onclick=()=>{tab="more";render()};
+matchMedia("(prefers-color-scheme:dark)").addEventListener("change",applyTheme);
+render();
+if(S.ver!==VERSION){if(S.ver||S.items.length)setTimeout(()=>toast("Updated to v"+VERSION+" · see ⚙️ for what's new"),700);S.ver=VERSION;save()}
+let lastDue=dueItems().length;
+function tick(){const n=dueItems().length;head();if(n!==lastDue){lastDue=n;if(tab==="review")vReview()}}
+setInterval(tick,60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick()});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
