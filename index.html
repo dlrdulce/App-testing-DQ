@@ -30,7 +30,7 @@ h1{font-size:24px;margin:6px 0 4px}
 .card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:12px;border:2px solid var(--line)}
 label{display:block;font-weight:700;margin:12px 0 5px}
 label:first-child{margin-top:0}
-input[type=text],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:11px}
+input[type=text],input[type=number],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:11px}
 textarea{min-height:68px;resize:vertical}
 input:focus,textarea:focus,select:focus{outline:3px solid var(--blue);outline-offset:1px}
 .seg{display:flex;gap:8px}
@@ -64,6 +64,8 @@ nav b{display:block;font-size:20px}
 .bd{border:2px dashed var(--line);border-radius:14px;padding:8px 10px;font-size:13px;opacity:.45}
 .bd.got{opacity:1;border-style:solid;border-color:var(--gold)}
 .small{font-size:13px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chips button{padding:6px 12px;font-size:13px;border-radius:20px}
 #fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:20}
 .mascot{display:flex;gap:12px;align-items:center;margin-bottom:12px}
 .owl{font-size:44px;animation:bob 2.4s ease-in-out infinite}
@@ -102,7 +104,7 @@ const $=s=>document.querySelector(s);
 const day=d=>(d||new Date()).toLocaleDateString("en-CA");
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 S.seen=S.seen||[];
-let tab="log",form={door:"two",conf:70,wait:7};
+let tab="log",form={door:"two",conf:70,n:1,u:"days"};
 
 function streak(){
   const set=new Set(S.days);let n=0;const d=new Date();
@@ -137,7 +139,10 @@ function addXp(n,msg,big){
   if(nb.length)setTimeout(()=>toast("New badge "+nb.join(", ")),up?300:2300);
 }
 const reviewed=()=>S.items.filter(i=>i.result!=null);
-const dueItems=()=>S.items.filter(i=>i.result==null&&i.due<=day());
+const dueMs=i=>typeof i.due==="number"?i.due:new Date(i.due+"T00:00:00").getTime();
+const fmt=ms=>new Date(ms).toLocaleString([],{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+function addTime(n,u){const d=new Date();if(u==="hours")d.setHours(d.getHours()+n);else if(u==="days")d.setDate(d.getDate()+n);else if(u==="weeks")d.setDate(d.getDate()+n*7);else d.setMonth(d.getMonth()+n);return d.getTime()}
+const dueItems=()=>S.items.filter(i=>i.result==null&&dueMs(i)<=Date.now());
 function head(){
   $("#lvl").textContent="Lv "+lvlOf(S.xp);
   $("#xpbar").style.width=((S.xp%50)/50*100)+"%";
@@ -176,27 +181,29 @@ function vLog(){
     </div>
     <label>How sure are you? <span class="conf" id="cv"></span></label>
     <input type="range" id="conf" min="50" max="100" step="5">
-    <label for="wait">Check back in</label>
-    <select id="wait"><option value="3">3 days</option><option value="7">1 week</option><option value="14">2 weeks</option><option value="30">1 month</option><option value="90">3 months</option></select>
+    <label for="wn">Check back in</label>
+    <div class="seg"><input type="number" id="wn" min="1" max="999" inputmode="numeric" style="max-width:96px"><select id="wu"><option value="hours">hours</option><option value="days">days</option><option value="weeks">weeks</option><option value="months">months</option></select></div>
+    <div class="chips" id="chips"><button data-n="1" data-u="hours">1 hr</button><button data-n="2" data-u="hours">2 hrs</button><button data-n="1" data-u="days">1 day</button><button data-n="1" data-u="weeks">1 week</button><button data-n="1" data-u="months">1 month</button></div>
     <button class="main" id="save">Log it · +10 XP</button>
   </div>`;
   const sync=()=>{$("#cv").textContent=form.conf+"%";document.querySelectorAll("#door button").forEach(b=>b.classList.toggle("on",b.dataset.v===form.door))};
-  $("#conf").value=form.conf;$("#wait").value=form.wait;sync();
+  $("#conf").value=form.conf;$("#wn").value=form.n;$("#wu").value=form.u;sync();
   $("#conf").oninput=e=>{form.conf=+e.target.value;sync()};
-  $("#wait").onchange=e=>form.wait=+e.target.value;
+  $("#wn").oninput=e=>form.n=Math.max(1,parseInt(e.target.value)||1);
+  $("#wu").onchange=e=>form.u=e.target.value;
+  $("#chips").onclick=e=>{const b=e.target.closest("button");if(b){form.n=+b.dataset.n;form.u=b.dataset.u;$("#wn").value=form.n;$("#wu").value=form.u}};
   $("#door").onclick=e=>{const b=e.target.closest("button");if(b){form.door=b.dataset.v;sync()}};
   $("#save").onclick=()=>{
     const q=$("#q").value.trim();
     if(!q){toast("Add what you're deciding first");$("#q").focus();return}
-    const d=new Date();d.setDate(d.getDate()+form.wait);
-    S.items.unshift({id:Date.now(),q,choice:$("#c").value.trim(),why:$("#w").value.trim(),wrong:$("#x").value.trim(),door:form.door,conf:form.conf,made:day(),due:day(d),result:null});
-    addXp(10+(it0(form)?5:0),"Logged!",false);form={door:"two",conf:70,wait:7};render();
+        S.items.unshift({id:Date.now(),q,choice:$("#c").value.trim(),why:$("#w").value.trim(),wrong:$("#x").value.trim(),door:form.door,conf:form.conf,made:day(),due:addTime(form.n,form.u),result:null});
+    addXp(10+(it0(form)?5:0),"Logged!",false);form={door:"two",conf:70,n:1,u:"days"};render();
   };
 }
 
 function it0(f){return f.door==='one'}
 function vReview(){
-  const due=dueItems(),wait=S.items.filter(i=>i.result==null&&i.due>day());
+  const due=dueItems(),wait=S.items.filter(i=>i.result==null&&dueMs(i)>Date.now()).sort((a,b)=>dueMs(a)-dueMs(b));
   let h="<h1>Review</h1><p class='sub'>Did it turn out how you expected?</p>";
   if(!due.length)h+=`<div class="card empty"><span>🌤️</span>Nothing to review today.<br>${wait.length?wait.length+" decision"+(wait.length>1?"s":"")+" waiting for their date.":"Log a decision to get started."}</div>`;
   due.forEach(i=>{h+=`<div class="card item" data-id="${i.id}">
@@ -207,7 +214,7 @@ function vReview(){
     <textarea placeholder="What did you learn? (optional)"></textarea>
     <div class="three"><button data-r="1">✅ Right</button><button data-r="0.5">🤏 Partly</button><button data-r="0">❌ Wrong</button></div></div>`});
   if(wait.length){h+="<h1 style='font-size:18px;margin-top:20px'>Coming up</h1>";
-    wait.slice(0,5).forEach(i=>h+=`<div class="card item"><h3>${esc(i.q)}</h3><div class="meta">Check on ${i.due}</div></div>`)}
+    wait.slice(0,5).forEach(i=>h+=`<div class="card item"><h3>${esc(i.q)}</h3><div class="meta">Check back ${fmt(dueMs(i))}</div></div>`)}
   $("#view").innerHTML=h;
   $("#view").onclick=e=>{
     const b=e.target.closest("[data-r]");if(!b)return;
@@ -236,6 +243,9 @@ function vStats(){
 
 document.querySelector("nav").onclick=e=>{const b=e.target.closest("button");if(b){tab=b.dataset.t;render()}};
 render();
+let lastDue=dueItems().length;
+function tick(){const n=dueItems().length;head();if(n!==lastDue){lastDue=n;if(tab==="review")vReview()}}
+setInterval(tick,60000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick()});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
